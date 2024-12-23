@@ -1,0 +1,27 @@
+import numpy as np
+
+def full_search_me(current_frame, reference_frame, block_size, search_range):
+    height, width = current_frame.shape
+    motion_vectors = np.zeros((height // block_size, width // block_size, 2), dtype=int)
+    min_mad = float('inf')  # Biến lưu trữ sai khác nhỏ nhất
+
+    for i in range(0, height, block_size):
+        for j in range(0, width, block_size):
+            current_block = current_frame[i:i + block_size, j:j + block_size]
+            
+            best_u, best_v = 0, 0
+            for u in range(-search_range, search_range + 1):
+                for v in range(-search_range, search_range + 1):
+                    ref_x, ref_y = i + u, j + v
+                    
+                    if 0 <= ref_x < height - block_size and 0 <= ref_y < width - block_size:
+                        reference_block = reference_frame[ref_x:ref_x + block_size, ref_y:ref_y + block_size]
+                        mad = np.sum(np.abs(current_block - reference_block))
+                        
+                        if mad < min_mad:
+                            min_mad = mad
+                            best_u, best_v = u, v
+            
+            motion_vectors[i // block_size, j // block_size] = [best_u, best_v]
+    
+    return motion_vectors
